@@ -16,10 +16,17 @@ Hanya font Fredoka yang diambil dari Google Fonts; kalau offline, game memakai f
    - **0–9**: balon bernomor muncul satu per satu untuk berhitung.
    - **Tombol lain** (spasi, Enter, panah): kembang api bintang.
    - **Setiap 10 huruf**: hujan konfeti dan sorakan.
-4. Di tablet atau ponsel, sentuh layar untuk memunculkan huruf acak, atau sentuh gelembung untuk memecahkannya.
+4. Di HP dan tablet, keyboard huruf besar muncul otomatis di bagian bawah layar. Tombol **123**
+   menampilkan angka, **★** memunculkan kembang api. Sentuh langit untuk huruf acak, atau sentuh
+   gelembung untuk memecahkannya.
 
-Tips untuk orang tua: tekan tombol ⛶ untuk layar penuh supaya si kecil tidak keluar dari game.
-Tombol 🔊 mematikan bunyi efek, dan 🗣️ mematikan suara sebut huruf.
+Tips untuk orang tua:
+- Tombol ⛶ membuat layar penuh supaya si kecil tidak keluar dari game.
+- Tombol ⌨️ menampilkan atau menyembunyikan keyboard huruf di layar.
+- Tombol 🔊 mematikan bunyi efek, dan 🗣️ mematikan suara sebut huruf.
+- Di iPhone/iPad, layar penuh tidak tersedia di Safari. Pakai **Bagikan → Tambahkan ke Layar Utama**
+  supaya game terbuka seperti aplikasi tanpa bilah browser. Pastikan tombol senyap (silent) tidak aktif,
+  karena iPhone membisukan suara game saat mode senyap.
 
 ## Daftar adegan
 

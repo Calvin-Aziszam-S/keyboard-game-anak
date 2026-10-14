@@ -2,7 +2,12 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#6fcbff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Huruf Meletup">
 <title>Huruf Meletup</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,7 +25,7 @@
   --font-display: "Fredoka", "Baloo 2", "Comic Sans MS", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
 }
-html, body { height: 100%; }
+html, body { height: 100%; overscroll-behavior: none; }
 [hidden] { display: none !important; }
 body {
   margin: 0;
@@ -30,10 +35,38 @@ body {
   font-family: var(--font-display);
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
-#stage { position: fixed; inset: 0; display: block; outline: none; cursor: pointer; }
+/* --kb-h = tinggi keyboard layar (diisi JS); kanvas berhenti tepat di atasnya */
+#stage { position: fixed; top: 0; left: 0; right: 0; bottom: var(--kb-h, 0px); display: block; outline: none; cursor: pointer; touch-action: none; }
+
+/* Keyboard huruf di layar (HP/tablet) */
+#kb {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 10px);
+  display: grid; gap: 6px;
+  grid-template-columns: repeat(var(--kb-cols, 7), minmax(0, 1fr));
+  background: rgba(255, 255, 255, .6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 -4px 0 rgba(59, 42, 107, .08);
+  touch-action: none;
+}
+.key {
+  height: var(--key-h, 52px); min-width: 0;
+  border: 0; border-radius: 14px; padding: 0;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: calc(var(--key-h, 52px) * 0.55); line-height: 1;
+  color: var(--paper);
+  box-shadow: inset 0 -5px 0 rgba(0, 0, 0, .18);
+  text-shadow: 0 2px 0 rgba(0, 0, 0, .15);
+  cursor: pointer; touch-action: none;
+  transition: transform .08s;
+}
+.key.down { transform: translateY(3px) scale(.92); box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .18); }
+.key.alt { background: var(--paper); color: var(--ink); font-size: calc(var(--key-h, 52px) * 0.4); box-shadow: inset 0 -5px 0 rgba(59, 42, 107, .15); }
 
 /* HUD */
 #hud {
@@ -66,7 +99,7 @@ body {
 /* Jejak huruf terakhir */
 #trail {
   position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 14px);
+  bottom: calc(max(var(--kb-h, 0px), env(safe-area-inset-bottom, 0px)) + 14px);
   max-width: calc(100% - 32px);
   display: flex; justify-content: flex-end; gap: 6px;
   overflow: hidden; pointer-events: none;
@@ -86,7 +119,8 @@ body {
 #intro {
   position: fixed; inset: 0;
   display: grid; place-items: center;
-  padding-inline: 16px;
+  padding-inline: 16px; padding-block: 16px;
+  overflow-y: auto;
   background: rgba(255, 255, 255, .35);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
@@ -134,6 +168,25 @@ body {
 @keyframes breathe { 50% { transform: scale(1.06); } }
 .tip { margin: 6px 0 0; font-size: 14px; font-weight: 500; opacity: .7; max-width: 40ch; line-height: 1.4; }
 
+/* Layar sempit: tombol HUD sedikit lebih kecil; jejak huruf disembunyikan saat keyboard layar tampil */
+@media (max-width: 480px) {
+  .round { width: 44px; height: 44px; font-size: 20px; }
+  .hud-right { gap: 8px; }
+  .chip { font-size: 19px; padding: 5px 13px 5px 10px; }
+  .card { padding: 26px 20px 22px; border-radius: 28px; }
+  .lead { font-size: 18px; }
+}
+@media (max-width: 700px) { body.kb-on #trail { display: none; } }
+/* HP posisi miring (layar pendek): kartu pembuka dipadatkan */
+@media (max-height: 520px) {
+  .card { padding: 18px 22px; gap: 8px; }
+  .title { font-size: 40px; }
+  .lead { font-size: 16px; }
+  .keys { display: none; }
+  #btnStart { font-size: 24px; padding: 10px 34px 12px; }
+  .tip { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .title span, #btnStart { animation: none; }
 }
@@ -148,11 +201,14 @@ body {
   <div class="hud-right">
     <button id="btnSound" class="round" aria-pressed="true" title="Bunyi efek">🔊</button>
     <button id="btnVoice" class="round" aria-pressed="true" title="Suara sebut huruf">🗣️</button>
+    <button id="btnKb" class="round" aria-pressed="false" title="Keyboard di layar">⌨️</button>
     <button id="btnFull" class="round" title="Layar penuh">⛶</button>
   </div>
 </div>
 
 <div id="trail" aria-hidden="true"></div>
+
+<div id="kb" role="group" aria-label="Keyboard huruf" hidden></div>
 
 <div id="intro">
   <div class="card">
@@ -197,9 +253,13 @@ window.SND = {"rustle":{"o":0,"d":0.8,"g":3.0,"b":"//uUZAAAAAAAAAAAAAAAAAAAAAAAA
   let W = 0, H = 0, DPR = 1, skyGrad = null;
   let U = 60, GY = 600; // satuan ukuran adegan & garis tanah
 
+  const kbEl = document.getElementById('kb');
   function resize() {
+    if (typeof layoutKb === 'function') layoutKb();
+    const kbH = kbEl.hidden ? 0 : kbEl.offsetHeight;
+    document.documentElement.style.setProperty('--kb-h', kbH + 'px');
     DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth; H = window.innerHeight;
+    W = window.innerWidth; H = Math.max(200, window.innerHeight - kbH);
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
     cv.style.width = W + 'px'; cv.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -454,7 +514,7 @@ window.SND = {"rustle":{"o":0,"d":0.8,"g":3.0,"b":"//uUZAAAAAAAAAAAAAAAAAAAAAAAA
     let color;
     do { color = pick(PALETTE); } while (color === lastColor);
     lastColor = color;
-    const size = clamp(Math.min(W, H) * 0.28, 100, 240);
+    const size = clamp(Math.min(W, H) * 0.28, Math.min(100, H * 0.3), 240);
     const spot = px != null ? { x: clamp(px, size * 0.4, W - size * 0.4), y: clamp(py, size * 0.5, H - size * 0.9) } : pickSpot(size);
     startScene(ch);
 
@@ -854,6 +914,71 @@ window.SND = {"rustle":{"o":0,"d":0.8,"g":3.0,"b":"//uUZAAAAAAAAAAAAAAAAAAAAAAAA
     voiceOn = !voiceOn; b.setAttribute('aria-pressed', voiceOn);
     if (!voiceOn) try { speechSynthesis.cancel(); } catch (e) {}
   });
+  // ---------- Keyboard di layar (HP/tablet) ----------
+  const IS_TOUCH = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+  let kbMode = 'abc';
+  function buildKb() {
+    const keys = kbMode === 'abc'
+      ? [...ABC.split(''), '123', '★']
+      : [...'1234567890'.split(''), 'ABC', '★'];
+    kbEl.innerHTML = '';
+    keys.forEach((k, i) => {
+      const b = document.createElement('button');
+      b.className = 'key' + (k.length > 1 || k === '★' ? ' alt' : '');
+      b.type = 'button';
+      b.textContent = k;
+      b.dataset.k = k;
+      if (!b.classList.contains('alt')) b.style.background = PALETTE[i % PALETTE.length];
+      else if (k === '★') { b.style.background = '#ffbf1a'; b.style.color = '#ffffff'; }
+      b.setAttribute('aria-label', k === '★' ? 'Kembang api' : k === '123' ? 'Angka' : k === 'ABC' ? 'Huruf' : k);
+      kbEl.appendChild(b);
+    });
+  }
+  function layoutKb() {
+    if (kbEl.hidden) return;
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const n = kbEl.children.length || 28;
+    // tegak: 7 kolom; miring/lebar: 14 kolom (2 baris)
+    const cols = vw > vh * 1.15 ? Math.min(14, n) : 7;
+    const rows = Math.ceil(n / cols);
+    const keyW = (vw - 32 - (cols - 1) * 6) / cols;
+    // (Math langsung, bukan clamp: fungsi ini bisa terpanggil dari resize() pertama sebelum clamp terdefinisi)
+    const keyH = Math.round(Math.max(36, Math.min(64, keyW, (vh * 0.34 - (rows - 1) * 6 - 18) / rows)));
+    kbEl.style.setProperty('--kb-cols', cols);
+    kbEl.style.setProperty('--key-h', keyH + 'px');
+  }
+  function setKb(on) {
+    kbEl.hidden = !on;
+    document.body.classList.toggle('kb-on', on);
+    btnKb.setAttribute('aria-pressed', on);
+    resize();
+  }
+  kbEl.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.key');
+    if (!b) return;
+    e.preventDefault();
+    b.classList.add('down');
+    setTimeout(() => b.classList.remove('down'), 140);
+    if (!started) start();
+    initAudio();
+    const k = b.dataset.k;
+    if (k === '123' || k === 'ABC') { kbMode = k === '123' ? 'num' : 'abc'; buildKb(); resize(); return; }
+    if (k === '★') { fireworks(); return; }
+    spawnLetter(k);
+  });
+  const btnKb = hudButton('btnKb', () => setKb(kbEl.hidden));
+  buildKb();
+  if (IS_TOUCH) {
+    setKb(true);
+    document.querySelector('.lead').textContent = 'Sentuh huruf di bawah layar. Setiap huruf punya cerita sendiri: bola masuk gawang, roket meluncur, telur menetas!';
+    document.querySelector('.tip').textContent = 'Untuk orang tua: tombol ⌨️ menyembunyikan atau menampilkan keyboard huruf. Sentuh langit untuk huruf acak, atau sentuh gelembung supaya pecah.';
+  }
+  // Pengaman sentuh: tanpa menu tekan-lama, tanpa zoom cubit (Safari iOS)
+  window.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  // iOS hanya mengizinkan audio dibuka dari sentuhan; touchend paling andal
+  document.addEventListener('touchend', () => initAudio(), { passive: true });
+
   const btnFull = hudButton('btnFull', () => {
     try {
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
